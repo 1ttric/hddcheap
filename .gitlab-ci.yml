@@ -2,6 +2,9 @@ stages:
 - build
 - deploy
 
+variables:
+  DOCKER_HOST: tcp://localhost:2375
+
 build-api:
   image: docker:latest
   stage: build
