@@ -1,9 +1,11 @@
+image: docker:git
+
 stages:
 - build
 - deploy
 
 variables:
-  DOCKER_HOST: tcp://localhost:2375
+  DOCKER_HOST: tcp://127.0.0.1:2375
 
 build-api:
   image: docker:latest
