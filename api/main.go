@@ -277,7 +277,7 @@ func main() {
 		}
 	})
 
-	err := http.ListenAndServe("0.0.0.0:8080", nil)
+	err := http.ListenAndServe("127.0.0.1:3001", nil)
 	if err == nil {
 		log.Infof("api shutting down")
 	} else {
