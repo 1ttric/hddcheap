@@ -2,23 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ce592361-00ce-4e92-b944-06d0cec8642c" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/web/hddcheap/README.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/web/hddcheap/package.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/web/hddcheap/public/favicon.ico" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/web/hddcheap/public/index.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/web/hddcheap/public/logo192.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/web/hddcheap/public/logo512.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/web/hddcheap/public/manifest.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/web/hddcheap/public/robots.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/web/hddcheap/src/App.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/web/hddcheap/src/App.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/web/hddcheap/src/App.test.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/web/hddcheap/src/index.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/web/hddcheap/src/index.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/web/hddcheap/src/logo.svg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/web/hddcheap/src/serviceWorker.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/web/hddcheap/src/setupTests.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/web/hddcheap/yarn.lock" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/api/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/api/main.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,7 +21,7 @@
   </component>
   <component name="GOROOT" path="/usr/lib/go" />
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/web/hddcheap" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="GoLibraries">
     <option name="indexEntireGoPath" value="false" />
@@ -63,11 +50,11 @@
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
     <property name="nodejs_package_manager_path" value="npm" />
     <property name="restartRequiresConfirmation" value="false" />
-    <property name="settings.editor.selected.configurable" value="reference.settings.ide.settings.web.browsers" />
+    <property name="settings.editor.selected.configurable" value="project.propVCSSupport.Mappings" />
     <property name="show.migrate.to.gradle.popup" value="false" />
     <property name="ts.external.directory.path" value="$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/jsLanguageServicesImpl/external" />
   </component>
-  <component name="RunManager" selected="JavaScript Debug.web">
+  <component name="RunManager" selected="Docker.api/Dockerfile">
     <configuration name="api" type="GoApplicationRunConfiguration" factoryName="Go Application">
       <module name="hddcheap" />
       <working_directory value="$PROJECT_DIR$/api" />
@@ -89,16 +76,60 @@
     <configuration name="web" type="JavascriptDebugType" uri="http://localhost:3000" useFirstLineBreakpoints="true">
       <method v="2" />
     </configuration>
+    <configuration name="api/Dockerfile" type="docker-deploy" factoryName="dockerfile" temporary="true" server-name="Docker">
+      <deployment type="dockerfile">
+        <settings>
+          <option name="buildCliOptions" value="" />
+          <option name="command" value="" />
+          <option name="containerName" value="" />
+          <option name="entrypoint" value="" />
+          <option name="imageTag" value="" />
+          <option name="commandLineOptions" value="" />
+          <option name="sourceFilePath" value="api/Dockerfile" />
+        </settings>
+      </deployment>
+      <method v="2" />
+    </configuration>
+    <configuration name="web/Dockerfile" type="docker-deploy" factoryName="dockerfile" temporary="true" server-name="Docker">
+      <deployment type="dockerfile">
+        <settings>
+          <option name="buildCliOptions" value="" />
+          <option name="command" value="" />
+          <option name="containerName" value="" />
+          <option name="entrypoint" value="" />
+          <option name="imageTag" value="" />
+          <option name="commandLineOptions" value="" />
+          <option name="sourceFilePath" value="web/Dockerfile" />
+        </settings>
+      </deployment>
+      <method v="2" />
+    </configuration>
     <list>
       <item itemvalue="Go Build.api" />
       <item itemvalue="Go Build.go build main.go" />
       <item itemvalue="JavaScript Debug.web" />
+      <item itemvalue="Docker.web/Dockerfile" />
+      <item itemvalue="Docker.api/Dockerfile" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Docker.api/Dockerfile" />
+        <item itemvalue="Docker.web/Dockerfile" />
         <item itemvalue="Go Build.go build main.go" />
       </list>
     </recent_temporary>
+  </component>
+  <component name="ServiceViewManager">
+    <option name="viewStates">
+      <list>
+        <serviceView>
+          <treeState>
+            <expand />
+            <select />
+          </treeState>
+        </serviceView>
+      </list>
+    </option>
   </component>
   <component name="SvnConfiguration">
     <configuration />
@@ -112,11 +143,17 @@
       <updated>1585103672332</updated>
       <workItem from="1585103673946" duration="5461000" />
       <workItem from="1585109299622" duration="7153000" />
+      <workItem from="1585441353224" duration="516000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <ignored-roots>
+      <path value="$PROJECT_DIR$/web/hddcheap" />
+    </ignored-roots>
   </component>
   <component name="VgoProject">
     <integration-enabled>true</integration-enabled>
@@ -130,10 +167,22 @@
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
     <state x="178" y="-33" width="802" height="670" key="#Web_Browsers/0.0.1920.1080@0.0.1920.1080" timestamp="1585104686275" />
+    <state x="2580" y="146" width="590" height="862" key="#api/Dockerfile" timestamp="1585441419525">
+      <screen x="1920" y="0" width="1920" height="1200" />
+    </state>
+    <state x="2580" y="146" width="590" height="862" key="#api/Dockerfile/1920.0.1920.1200/0.120.1920.1080/3840.300.1600.900@1920.0.1920.1200" timestamp="1585441419525" />
     <state x="42" y="-14" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1585104691354">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
     <state x="42" y="-14" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1920.1080@0.0.1920.1080" timestamp="1585104691354" />
+    <state x="2580" y="134" width="590" height="886" key="#web/Dockerfile" timestamp="1585441416149">
+      <screen x="1920" y="0" width="1920" height="1200" />
+    </state>
+    <state x="2580" y="134" width="590" height="886" key="#web/Dockerfile/1920.0.1920.1200/0.120.1920.1080/3840.300.1600.900@1920.0.1920.1200" timestamp="1585441416149" />
+    <state x="2476" y="150" width="797" height="855" key="CommitChangelistDialog2" timestamp="1585441615151">
+      <screen x="1920" y="0" width="1920" height="1200" />
+    </state>
+    <state x="2476" y="150" width="797" height="855" key="CommitChangelistDialog2/1920.0.1920.1200/0.120.1920.1080/3840.300.1600.900@1920.0.1920.1200" timestamp="1585441615151" />
     <state width="912" height="396" key="GridCell.Tab.0.bottom" timestamp="1585119101778">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
@@ -186,10 +235,11 @@
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
     <state x="62" y="267" width="826" height="501" key="IDE.errors.dialog/0.0.1920.1080@0.0.1920.1080" timestamp="1585109549731" />
-    <state x="-1" y="156" key="SettingsEditor" timestamp="1585104735734">
-      <screen x="0" y="0" width="1920" height="1080" />
+    <state x="927" y="151" key="SettingsEditor" timestamp="1585440945429">
+      <screen x="0" y="120" width="1920" height="1080" />
     </state>
     <state x="-1" y="156" key="SettingsEditor/0.0.1920.1080@0.0.1920.1080" timestamp="1585104735734" />
+    <state x="927" y="151" key="SettingsEditor/1920.0.1920.1200/0.120.1920.1080/3840.300.1600.900@1920.0.1920.1200" timestamp="1585440945429" />
     <state x="284" y="441" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1585104250078">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
