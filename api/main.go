@@ -1,12 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
 	"github.com/tebeka/selenium"
 	"github.com/tebeka/selenium/chrome"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -46,14 +46,20 @@ type ItemStore struct {
 
 // Refreshes the items in the store
 func (s *ItemStore) refresh() {
+	log.Debugf("item store refreshing")
 	var sortedItems []Item
 	for page := 1; page < 4; page++ {
-		sortedItems = append(sortedItems, s.fetcher.FetchItems(page)...)
+		itemChunk, err := s.fetcher.FetchItems(page)
+		if err != nil {
+			log.Warnf("skipping results page %d: %s", page, err.Error())
+			continue
+		}
+		sortedItems = append(sortedItems, itemChunk...)
 	}
 	sort.Slice(sortedItems, func(i, j int) bool {
 		return sortedItems[i].Efficiency < sortedItems[j].Efficiency
 	})
-	log.Infof("item store refreshed with %d new items", len(sortedItems))
+	log.Infof("item store refreshed with %d results", len(sortedItems))
 
 	s.items = sortedItems
 	// Sends the items to each listening item channel
@@ -84,10 +90,12 @@ func (s *ItemStore) CancelSubscription(itemChan chan []Item) {
 }
 
 // Starts the item store running. This periodically refreshes the items in the store.
-func (s *ItemStore) Start() {
+func (s *ItemStore) Start() error {
 	s.fetcher = ItemFetcher{}
-	s.fetcher.Start()
-
+	err := s.fetcher.Start()
+	if err != nil {
+		return fmt.Errorf("could not initialize item fetcher: %w", err)
+	}
 	// Initial population at first start
 	s.refresh()
 
@@ -105,6 +113,8 @@ func (s *ItemStore) Start() {
 			}
 		}
 	}()
+
+	return nil
 }
 
 // Stops the item store refresh worker
@@ -120,18 +130,19 @@ type ItemFetcher struct {
 	driver      selenium.WebDriver
 }
 
-func (i *ItemFetcher) Start() {
+func (i *ItemFetcher) Start() error {
 	var err error
 	i.seleniumSvc, err = selenium.NewChromeDriverService("/usr/bin/chromedriver", 4444)
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("could not start chromedriver: %w", err)
 	}
 	capabilities := selenium.Capabilities{"browser": "chrome"}
 	capabilities.AddChrome(chrome.Capabilities{Args: []string{"--headless"}})
 	i.driver, err = selenium.NewRemote(capabilities, "http://127.0.0.1:4444/wd/hub")
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("could not start selenium: %w", err)
 	}
+	return nil
 }
 
 func (i *ItemFetcher) Stop() {
@@ -141,8 +152,8 @@ func (i *ItemFetcher) Stop() {
 
 // Fetches Amazon items from a search with Chromedriver via Selenium
 // Page begins at 1
-func (i *ItemFetcher) FetchItems(page int) []Item {
-
+func (i *ItemFetcher) FetchItems(page int) ([]Item, error) {
+	// Get the page source
 	baseURL, err := url.Parse("https://www.amazon.com/s/ref=sr_st_featured-rank")
 	if err != nil {
 		panic(err)
@@ -161,8 +172,10 @@ func (i *ItemFetcher) FetchItems(page int) []Item {
 	}
 	baseURL.RawQuery = params.Encode()
 	if err := i.driver.Get(baseURL.String()); err != nil {
-		panic(err)
+		return nil, fmt.Errorf("could not fetch amazon page: %w", err)
 	}
+	// This page load check makes sure the bottom 'Next Page' button appears in the doc before continuing.
+	// This is necessary because I observed sometimes the document would truncate halfway through the item list
 	err = i.driver.Wait(func(wd selenium.WebDriver) (b bool, err error) {
 		pageSource, err := wd.PageSource()
 		if err != nil {
@@ -170,27 +183,23 @@ func (i *ItemFetcher) FetchItems(page int) []Item {
 		}
 		doc, err := goquery.NewDocumentFromReader(strings.NewReader(pageSource))
 		if err != nil {
-			panic(err)
+			return false, fmt.Errorf("page load check could not parse source: %w", err)
 		}
 		return doc.Find("li.a-last").Length() > 0, nil
 	})
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("could not wait for doc load: %w", err)
 	}
+
+	// Parse the page source
 	html, err := i.driver.PageSource()
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("could not retrieve source: %w", err)
 	}
-	err = ioutil.WriteFile("/tmp/random", []byte(html), 0o644)
-	if err != nil {
-		panic(err)
-	}
-
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(html))
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("could not parse source: %w", err)
 	}
-
 	var items []Item
 	doc.Find("div[data-asin]").Each(func(i int, itemObj *goquery.Selection) {
 		asin, ok := itemObj.Attr("data-asin")
@@ -238,13 +247,16 @@ func (i *ItemFetcher) FetchItems(page int) []Item {
 		items = append(items, item)
 	})
 
-	return items
+	return items, nil
 }
 
 func main() {
 	log.Infof("api initializing")
 	itemStore := ItemStore{}
-	itemStore.Start()
+	err := itemStore.Start()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	upgrader := &websocket.Upgrader{CheckOrigin: func(r *http.Request) bool {
 		return true
@@ -277,7 +289,7 @@ func main() {
 		}
 	})
 
-	err := http.ListenAndServe("127.0.0.1:3001", nil)
+	err = http.ListenAndServe("127.0.0.1:3001", nil)
 	if err == nil {
 		log.Infof("api shutting down")
 	} else {
