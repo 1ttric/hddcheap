@@ -47,14 +47,15 @@ type ItemStore struct {
 // Refreshes the items in the store
 func (s *ItemStore) refresh() {
 	var sortedItems []Item
-	for page := 1; page < 2; page++ {
+	for page := 1; page < 4; page++ {
 		sortedItems = append(sortedItems, s.fetcher.FetchItems(page)...)
 	}
 	sort.Slice(sortedItems, func(i, j int) bool {
 		return sortedItems[i].Efficiency < sortedItems[j].Efficiency
 	})
-	s.items = sortedItems
+	log.Infof("item store refreshed with %d new items", len(sortedItems))
 
+	s.items = sortedItems
 	// Sends the items to each listening item channel
 	for _, itemChan := range s.itemChans {
 		itemChan <- s.items
@@ -95,11 +96,11 @@ func (s *ItemStore) Start() {
 		for {
 			select {
 			case <-time.After(time.Minute):
-				log.Infof("Item store refreshing")
+				log.Infof("item store refreshing")
 				s.refresh()
-				log.Infof("Item store refreshed with %d items", len(s.items))
+				log.Infof("item store refreshed with %d items", len(s.items))
 			case <-s.stop:
-				log.Infof("Item store refresh worker exiting")
+				log.Infof("item store refresh worker exiting")
 				return
 			}
 		}
@@ -134,8 +135,8 @@ func (i *ItemFetcher) Start() {
 }
 
 func (i *ItemFetcher) Stop() {
-	i.seleniumSvc.Stop()
-	i.driver.Quit()
+	_ = i.seleniumSvc.Stop()
+	_ = i.driver.Quit()
 }
 
 // Fetches Amazon items from a search with Chromedriver via Selenium
@@ -162,14 +163,20 @@ func (i *ItemFetcher) FetchItems(page int) []Item {
 	if err := i.driver.Get(baseURL.String()); err != nil {
 		panic(err)
 	}
-	i.driver.Wait(func(wd selenium.WebDriver) (b bool, err error) {
+	err = i.driver.Wait(func(wd selenium.WebDriver) (b bool, err error) {
 		pageSource, err := wd.PageSource()
 		if err != nil {
 			return true, err
 		}
 		doc, err := goquery.NewDocumentFromReader(strings.NewReader(pageSource))
+		if err != nil {
+			panic(err)
+		}
 		return doc.Find("li.a-last").Length() > 0, nil
 	})
+	if err != nil {
+		panic(err)
+	}
 	html, err := i.driver.PageSource()
 	if err != nil {
 		panic(err)
@@ -188,41 +195,41 @@ func (i *ItemFetcher) FetchItems(page int) []Item {
 	doc.Find("div[data-asin]").Each(func(i int, itemObj *goquery.Selection) {
 		asin, ok := itemObj.Attr("data-asin")
 		if !ok {
-			log.Tracef("Skipping idx %d: no ASIN", i)
+			log.Tracef("skipping idx %d: no ASIN", i)
 			return
 		}
-		url := "https://amazon.com/dp/" + asin
+		itemUrl := "https://amazon.com/dp/" + asin
 		name := itemObj.Find("span.a-text-normal").Text()
 		priceObj := itemObj.Find("span.a-price > span > span")
 		if priceObj == nil {
-			log.Tracef("Skipping %#v: no price tag", asin)
+			log.Tracef("skipping %#v: no price tag", asin)
 			return
 		}
 		priceStr := priceObj.Text()
 		if len(priceStr) == 0 || priceStr[0] != '$' {
-			log.Tracef("Skipping %#v: invalid price string", asin)
+			log.Tracef("skipping %#v: invalid price string", asin)
 			return
 		}
 		priceFloat, err := strconv.ParseFloat(strings.ReplaceAll(priceStr[1:], ",", ""), 32)
 		if err != nil {
-			log.Tracef("Skipping %#v: price is not a float", asin)
+			log.Tracef("skipping %#v: price is not a float", asin)
 			return
 		}
 		price := float32(priceFloat)
 		capacityMatch := reCapacity.FindAllStringSubmatch(name, -1)
 		if len(capacityMatch) != 1 || len(capacityMatch[0]) == 0 {
-			log.Tracef("Skipping %#v: title lacks a capacity", asin)
+			log.Tracef("skipping %#v: title lacks a capacity", asin)
 			return
 		}
 		capacityFloat, err := strconv.ParseFloat(capacityMatch[0][1], 32)
 		if err != nil {
-			log.Tracef("Skipping %#v: capacity is not a float", asin)
+			log.Tracef("skipping %#v: capacity is not a float", asin)
 			return
 		}
 		capacity := float32(capacityFloat)
 		item := Item{
 			ASIN:       asin,
-			URL:        url,
+			URL:        itemUrl,
 			Name:       name,
 			Price:      price,
 			Capacity:   capacity,
@@ -235,6 +242,7 @@ func (i *ItemFetcher) FetchItems(page int) []Item {
 }
 
 func main() {
+	log.Infof("api initializing")
 	itemStore := ItemStore{}
 	itemStore.Start()
 
@@ -245,29 +253,34 @@ func main() {
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		ws, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
-			log.Error("Could not upgrade websocket: %s", err.Error())
+			log.Error("could not upgrade websocket: %s", err.Error())
 			return
 		}
 		defer ws.Close()
 
 		// Feed the websocket with item information and continue to refresh it as new item information rolls in
 		remoteAddr := ws.RemoteAddr().String()
-		log.Debugf("Starting websocket producer for host %s", remoteAddr)
+		log.Debugf("starting websocket producer for host %s", remoteAddr)
 		err = ws.WriteJSON(itemStore.Items())
 		if err != nil {
-			log.Infof("Disconnecting host %s: Could not populate initial items: %s", remoteAddr, err.Error())
+			log.Infof("disconnecting host %s: could not populate initial items: %s", remoteAddr, err.Error())
 		}
 		itemChan := itemStore.ItemSubscription()
 		defer itemStore.CancelSubscription(itemChan)
 		for {
 			items := <-itemChan
-			log.Debugf("Sending %d new items to host %s", len(items), remoteAddr)
+			log.Debugf("sending %d new items to host %s", len(items), remoteAddr)
 			err := ws.WriteJSON(items)
 			if err != nil {
-				log.Infof("Disconnecting host %s: Could not update items: %s", remoteAddr, err.Error())
+				log.Infof("disconnecting host %s: could not update items: %s", remoteAddr, err.Error())
 			}
 		}
 	})
 
-	http.ListenAndServe("0.0.0.0:8080", nil)
+	err := http.ListenAndServe("0.0.0.0:8080", nil)
+	if err == nil {
+		log.Infof("api shutting down")
+	} else {
+		log.Infof("api shutting down: %s", err.Error())
+	}
 }
