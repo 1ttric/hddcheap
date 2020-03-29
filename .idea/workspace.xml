@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="ce592361-00ce-4e92-b944-06d0cec8642c" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+    <list default="true" id="ce592361-00ce-4e92-b944-06d0cec8642c" name="Default Changelist" comment="Log updates">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/api/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/api/Dockerfile" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/api/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/api/main.go" afterDir="false" />
@@ -35,7 +34,9 @@
   </component>
   <component name="PropertiesComponent">
     <property name="DefaultGoTemplateProperty" value="Go File" />
+    <property name="GO_FMT" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="TF_FMT" value="false" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
     <property name="go.import.settings.migrated" value="true" />
@@ -143,7 +144,7 @@
       <updated>1585103672332</updated>
       <workItem from="1585103673946" duration="5461000" />
       <workItem from="1585109299622" duration="7153000" />
-      <workItem from="1585441353224" duration="516000" />
+      <workItem from="1585441353224" duration="1453000" />
     </task>
     <servers />
   </component>
@@ -154,6 +155,8 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/web/hddcheap" />
     </ignored-roots>
+    <MESSAGE value="Log updates" />
+    <option name="LAST_COMMIT_MESSAGE" value="Log updates" />
   </component>
   <component name="VgoProject">
     <integration-enabled>true</integration-enabled>
@@ -179,10 +182,10 @@
       <screen x="1920" y="0" width="1920" height="1200" />
     </state>
     <state x="2580" y="134" width="590" height="886" key="#web/Dockerfile/1920.0.1920.1200/0.120.1920.1080/3840.300.1600.900@1920.0.1920.1200" timestamp="1585441416149" />
-    <state x="2476" y="150" width="797" height="855" key="CommitChangelistDialog2" timestamp="1585441615151">
+    <state x="2470" y="18" width="797" height="855" key="CommitChangelistDialog2" timestamp="1585443031895">
       <screen x="1920" y="0" width="1920" height="1200" />
     </state>
-    <state x="2476" y="150" width="797" height="855" key="CommitChangelistDialog2/1920.0.1920.1200/0.120.1920.1080/3840.300.1600.900@1920.0.1920.1200" timestamp="1585441615151" />
+    <state x="2470" y="18" width="797" height="855" key="CommitChangelistDialog2/1920.0.1920.1200/0.120.1920.1080/3840.300.1600.900@1920.0.1920.1200" timestamp="1585443031895" />
     <state width="912" height="396" key="GridCell.Tab.0.bottom" timestamp="1585119101778">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
