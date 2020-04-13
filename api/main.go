@@ -103,7 +103,7 @@ func (s *ItemStore) Start() error {
 	go func() {
 		for {
 			select {
-			case <-time.After(time.Minute * 2):
+			case <-time.After(time.Minute * 5):
 				log.Infof("item store refreshing")
 				s.refresh()
 				log.Infof("item store refreshed with %d items", len(s.items))
