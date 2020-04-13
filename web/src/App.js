@@ -21,9 +21,7 @@ class App extends Component {
     }
 
     componentDidMount() {
-        ws.onopen = () => {
-            console.log("Websocket connected");
-        };
+        ws.onopen = () => console.log("Websocket connected");
         ws.onmessage = (msg) => {
             let items = JSON.parse(msg.data);
             this.setState(state => ({
