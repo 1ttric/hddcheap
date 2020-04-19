@@ -6,7 +6,7 @@ WORKDIR /app/src
 COPY . .
 RUN CGO_ENABLED=0 go build -v -trimpath -o /app/build
 
-FROM scratch
+FROM selenium/standalone-chrome
 COPY --from=build /app/build /app/build
 
 ENTRYPOINT ["/app/build", "--verbosity", "trace"]

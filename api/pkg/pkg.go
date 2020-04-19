@@ -136,7 +136,7 @@ type ItemFetcher struct {
 
 func (i *ItemFetcher) Start() error {
 	var err error
-	i.seleniumSvc, err = selenium.NewChromeDriverService("/usr/bin/chromedriver", 4444)
+	i.seleniumSvc, err = selenium.NewChromeDriverService("chromedriver", 4444)
 	if err != nil {
 		log.Errorf("could not find selenium binary")
 		return fmt.Errorf("could not find selenium binary")
