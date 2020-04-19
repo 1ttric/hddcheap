@@ -1,6 +1,5 @@
 stages:
 - build
-- deploy
 
 build-api:
   image: docker:latest
