@@ -18,14 +18,12 @@ import (
 	"time"
 )
 
-func init() {
-	log.SetLevel(log.TraceLevel)
-}
-
 var (
+	// The global default item store
+	itemStore = ItemStore{}
 	// Extracts an item's size (in TB) from its title
 	reCapacity = regexp.MustCompile("(?i)(\\d+\\.?\\d*?).?TB")
-	//
+	// Denotes an error while fetching the most recent Amazon item listings
 	errFetchFailure = errors.New("could not fetch results")
 )
 
@@ -94,27 +92,33 @@ func (s *ItemStore) CancelSubscription(itemChan chan []Item) {
 
 // Starts the item store running. This periodically refreshes the items in the store.
 // refreshPeriod is in seconds
-func (s *ItemStore) Start(refreshPeriod int) {
+func (s *ItemStore) Start(refreshPeriod int) error {
 	s.fetcher = ItemFetcher{}
-	s.fetcher.Start()
-
-	// Initial population at first start
-	s.refresh()
+	err := s.fetcher.Start()
+	if err != nil {
+		return err
+	}
 
 	// Worker which periodically refreshes the items in the store
 	go func() {
 		for {
+			log.Infof("item store refreshing")
+			err = s.refresh()
+			if err == nil {
+				log.Infof("item store refreshed with %d items", len(s.items))
+			} else {
+				log.Errorf("item store could not refresh: %s", err.Error())
+			}
 			select {
 			case <-time.After(time.Second * time.Duration(refreshPeriod)):
-				log.Infof("Item store refreshing")
-				s.refresh()
-				log.Infof("Item store refreshed with %d items", len(s.items))
 			case <-s.stop:
-				log.Infof("Item store refresh worker exiting")
+				log.Infof("item store refresh worker exiting")
 				return
 			}
 		}
 	}()
+
+	return nil
 }
 
 // Stops the item store refresh worker
@@ -130,18 +134,22 @@ type ItemFetcher struct {
 	driver      selenium.WebDriver
 }
 
-func (i *ItemFetcher) Start() {
+func (i *ItemFetcher) Start() error {
 	var err error
 	i.seleniumSvc, err = selenium.NewChromeDriverService("/usr/bin/chromedriver", 4444)
 	if err != nil {
-		panic(err)
+		log.Errorf("could not find selenium binary")
+		return fmt.Errorf("could not find selenium binary")
 	}
 	capabilities := selenium.Capabilities{"browser": "chrome"}
 	capabilities.AddChrome(chrome.Capabilities{Args: []string{"--headless"}})
 	i.driver, err = selenium.NewRemote(capabilities, "http://127.0.0.1:4444/wd/hub")
 	if err != nil {
-		panic(err)
+		log.Errorf("could not connect to selenium remote")
+		return fmt.Errorf("could not connect to selenium remote")
 	}
+
+	return nil
 }
 
 func (i *ItemFetcher) Stop() {
@@ -173,14 +181,20 @@ func (i *ItemFetcher) FetchItems(page int) ([]Item, error) {
 	if err := i.driver.Get(baseURL.String()); err != nil {
 		return []Item{}, fmt.Errorf("%w: %s", errFetchFailure, err.Error())
 	}
-	i.driver.Wait(func(wd selenium.WebDriver) (b bool, err error) {
+	err = i.driver.Wait(func(wd selenium.WebDriver) (b bool, err error) {
 		pageSource, err := wd.PageSource()
 		if err != nil {
 			return true, err
 		}
 		doc, err := goquery.NewDocumentFromReader(strings.NewReader(pageSource))
+		if err != nil {
+			return true, err
+		}
 		return doc.Find("li.a-last").Length() > 0, nil
 	})
+	if err != nil {
+		return []Item{}, fmt.Errorf("%w: %s", errFetchFailure, err.Error())
+	}
 	html, err := i.driver.PageSource()
 	if err != nil {
 		return []Item{}, fmt.Errorf("%w: %s", errFetchFailure, err.Error())
@@ -202,7 +216,7 @@ func (i *ItemFetcher) FetchItems(page int) ([]Item, error) {
 			log.Tracef("Skipping idx %d: no ASIN", i)
 			return
 		}
-		url := "https://amazon.com/dp/" + asin
+		itemUrl := "https://amazon.com/dp/" + asin
 		name := itemObj.Find("span.a-text-normal").Text()
 		priceObj := itemObj.Find("span.a-price > span > span")
 		if priceObj == nil {
@@ -233,7 +247,7 @@ func (i *ItemFetcher) FetchItems(page int) ([]Item, error) {
 		capacity := float32(capacityFloat)
 		item := Item{
 			ASIN:       asin,
-			URL:        url,
+			URL:        itemUrl,
 			Name:       name,
 			Price:      price,
 			Capacity:   capacity,
@@ -245,41 +259,44 @@ func (i *ItemFetcher) FetchItems(page int) ([]Item, error) {
 	return items, nil
 }
 
-func Serve(refreshPeriod int) {
-	log.Infof("starting hddcheap api")
-	itemStore := ItemStore{}
-	itemStore.Start(refreshPeriod)
-
+func handleWebsocket(w http.ResponseWriter, r *http.Request) {
 	upgrader := &websocket.Upgrader{CheckOrigin: func(r *http.Request) bool {
 		return true
 	}}
 
-	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-		ws, err := upgrader.Upgrade(w, r, nil)
-		if err != nil {
-			log.Error("Could not upgrade websocket: %s", err.Error())
-			return
-		}
-		defer ws.Close()
+	ws, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Error("Could not upgrade websocket: %s", err.Error())
+		return
+	}
+	defer ws.Close()
 
-		// Feed the websocket with item information and continue to refresh it as new item information rolls in
-		remoteAddr := ws.RemoteAddr().String()
-		log.Debugf("Starting websocket producer for host %s", remoteAddr)
-		err = ws.WriteJSON(itemStore.Items())
+	// Feed the websocket with item information and continue to refresh it as new item information rolls in
+	remoteAddr := ws.RemoteAddr().String()
+	log.Debugf("Starting websocket producer for host %s", remoteAddr)
+	err = ws.WriteJSON(itemStore.Items())
+	if err != nil {
+		log.Infof("Disconnecting host %s: Could not populate initial items: %s", remoteAddr, err.Error())
+	}
+	itemChan := itemStore.ItemSubscription()
+	defer itemStore.CancelSubscription(itemChan)
+	for {
+		items := <-itemChan
+		log.Debugf("Sending %d new items to host %s", len(items), remoteAddr)
+		err := ws.WriteJSON(items)
 		if err != nil {
-			log.Infof("Disconnecting host %s: Could not populate initial items: %s", remoteAddr, err.Error())
+			log.Infof("Disconnecting host %s: Could not update items: %s", remoteAddr, err.Error())
 		}
-		itemChan := itemStore.ItemSubscription()
-		defer itemStore.CancelSubscription(itemChan)
-		for {
-			items := <-itemChan
-			log.Debugf("Sending %d new items to host %s", len(items), remoteAddr)
-			err := ws.WriteJSON(items)
-			if err != nil {
-				log.Infof("Disconnecting host %s: Could not update items: %s", remoteAddr, err.Error())
-			}
-		}
-	})
+	}
+}
 
+// Start and
+func Serve(refreshPeriod int) {
+	log.Infof("starting hddcheap api")
+	err := itemStore.Start(refreshPeriod)
+	if err != nil {
+		log.Fatalf("could not start hddcheap api: %s", err.Error())
+	}
+	http.HandleFunc("/ws", handleWebsocket)
 	_ = http.ListenAndServe("0.0.0.0:8080", nil)
 }
