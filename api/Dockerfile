@@ -4,10 +4,9 @@ RUN apk update && \
 
 WORKDIR /app/src
 COPY . .
-RUN go get -d -v
-RUN go build -v -trimpath -o /app/build
+RUN CGO_ENABLED=0 go build -v -trimpath -o /app/build
 
 FROM scratch
 COPY --from=build /app/build /app/build
 
-ENTRYPOINT ["/app/build"]
+ENTRYPOINT ["/app/build", "-verbosity", "trace"]
