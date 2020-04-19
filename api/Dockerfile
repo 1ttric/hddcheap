@@ -5,7 +5,7 @@ RUN apk update && \
 WORKDIR /app/src
 COPY . .
 RUN go get -d -v
-RUN go build -v -o /app/build
+RUN go build -v -trimpath -o /app/build
 
 FROM scratch
 COPY --from=build /app/build /app/build
