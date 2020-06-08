@@ -11,7 +11,7 @@ import Typography from "@material-ui/core/Typography";
 import Toolbar from "@material-ui/core/Toolbar";
 import Box from "@material-ui/core/Box";
 
-const ws = new WebSocket("ws://127.0.0.1:8080/ws");
+let ws = new WebSocket(window.location.origin.replace(/^http/, 'ws') + "/ws");
 
 
 class App extends Component {
@@ -21,9 +21,7 @@ class App extends Component {
     }
 
     componentDidMount() {
-        ws.onopen = () => {
-            console.log("Websocket connected");
-        };
+        ws.onopen = () => console.log("Websocket connected");
         ws.onmessage = (msg) => {
             let items = JSON.parse(msg.data);
             this.setState(state => ({
@@ -56,7 +54,8 @@ class App extends Component {
             'title': 'history',
             'field': 'history',
             render: rowData => <a href={"https://camelcamelcamel.com/product/" + rowData.asin} target={"_blank"}>
-                <img alt={"Graphed price history from camelcamelcamel"} style={{mixBlendMode: 'multiply'}} src={"https://charts.camelcamelcamel.com/us/" + rowData.asin + "/amazon-new-used.png?legend=1&fo=1&w=900"}/>
+                <img alt={"Graphed price history from camelcamelcamel"} style={{mixBlendMode: 'multiply'}}
+                     src={"https://charts.camelcamelcamel.com/us/" + rowData.asin + "/amazon-new-used.png?legend=1&fo=1&w=900"}/>
             </a>
         });
 
@@ -75,7 +74,6 @@ class App extends Component {
             </Box>
         );
     }
-
 
 
     render() {

@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hddcheap
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hddcheap
+  template:
+    metadata:
+      name: hddcheap
+      labels:
+        app: hddcheap
+    spec:
+      containers:
+      - name: hddcheap-api
+        image: registry.int.vesey.tech/will/hddcheap/api
+      - name: hddcheap-web
+        image: registry.int.vesey.tech/will/hddcheap/web
+      imagePullSecrets:
+      - name: gitlab-registry
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hddcheap
+spec:
+  ports:
+  - name: tcp
+    port: 80
+  selector:
+    app: hddcheap
+
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: hddcheap
+spec:
+  entryPoints:
+    - https
+  routes:
+  - match: Host(`hdd.cheap`)
+    kind: Rule
+    services:
+    - name: hddcheap
+      port: 80
+  tls:
+    certResolver: default
+    domains:
+    - main: "hdd.cheap"
+
