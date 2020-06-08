@@ -47,9 +47,9 @@ type ItemStore struct {
 }
 
 // Refreshes the items in the store, returning a list sorted by efficiency
-func (s *ItemStore) refresh() error {
+func (s *ItemStore) refresh(numPages int) error {
 	var sortedItems []Item
-	for page := 1; page < 2; page++ {
+	for page := 0; page < numPages; page++ {
 		itemPage, err := s.fetcher.FetchItems(page)
 		if err != nil {
 			return err
@@ -92,7 +92,7 @@ func (s *ItemStore) CancelSubscription(itemChan chan []Item) {
 
 // Starts the item store running. This periodically refreshes the items in the store.
 // refreshPeriod is in seconds
-func (s *ItemStore) Start(refreshPeriod int) error {
+func (s *ItemStore) Start(refreshPeriod, numPages int) error {
 	s.fetcher = ItemFetcher{}
 	err := s.fetcher.Start()
 	if err != nil {
@@ -103,7 +103,7 @@ func (s *ItemStore) Start(refreshPeriod int) error {
 	go func() {
 		for {
 			log.Infof("item store refreshing")
-			err = s.refresh()
+			err = s.refresh(numPages)
 			if err == nil {
 				log.Infof("item store refreshed with %d items", len(s.items))
 			} else {
@@ -291,9 +291,9 @@ func handleWebsocket(w http.ResponseWriter, r *http.Request) {
 }
 
 // Start and
-func Serve(refreshPeriod int) {
+func Serve(refreshPeriod, numPages int) {
 	log.Infof("starting hddcheap api")
-	err := itemStore.Start(refreshPeriod)
+	err := itemStore.Start(refreshPeriod, numPages)
 	if err != nil {
 		log.Fatalf("could not start hddcheap api: %s", err.Error())
 	}
