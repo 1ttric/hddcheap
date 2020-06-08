@@ -9,4 +9,5 @@ RUN CGO_ENABLED=0 go build -v -trimpath -o /app/build
 FROM selenium/standalone-chrome
 COPY --from=build /app/build /app/build
 
+EXPOSE 3001
 ENTRYPOINT ["/app/build"]
