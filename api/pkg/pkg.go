@@ -291,12 +291,12 @@ func handleWebsocket(w http.ResponseWriter, r *http.Request) {
 }
 
 // Start and
-func Serve(refreshPeriod, numPages int) {
+func Serve(refreshPeriod, numPages int, listenAddr string) {
 	log.Infof("starting hddcheap api")
 	err := itemStore.Start(refreshPeriod, numPages)
 	if err != nil {
 		log.Fatalf("could not start hddcheap api: %s", err.Error())
 	}
 	http.HandleFunc("/ws", handleWebsocket)
-	_ = http.ListenAndServe("0.0.0.0:8080", nil)
+	_ = http.ListenAndServe(listenAddr, nil)
 }
