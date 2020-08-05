@@ -15,8 +15,10 @@ spec:
     spec:
       containers:
       - name: hddcheap-api
+        imagePullPolicy: Always
         image: registry.int.vesey.tech/will/hddcheap/api
       - name: hddcheap-web
+        imagePullPolicy: Always
         image: registry.int.vesey.tech/will/hddcheap/web
       imagePullSecrets:
       - name: gitlab-registry
