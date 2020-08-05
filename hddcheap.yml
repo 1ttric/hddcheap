@@ -14,14 +14,16 @@ spec:
         app: hddcheap
     spec:
       containers:
-      - name: hddcheap-api
-        imagePullPolicy: Always
-        image: registry.int.vesey.tech/will/hddcheap/api
-      - name: hddcheap-web
-        imagePullPolicy: Always
-        image: registry.int.vesey.tech/will/hddcheap/web
+        - name: hddcheap-api
+          imagePullPolicy: Always
+          image: registry.int.vesey.tech/will/hddcheap/api
+        - name: hddcheap-web
+          imagePullPolicy: Always
+          image: registry.int.vesey.tech/will/hddcheap/web
+          ports:
+            - containerPort: 3000
       imagePullSecrets:
-      - name: gitlab-registry
+        - name: gitlab-registry
 
 ---
 apiVersion: v1
@@ -30,8 +32,8 @@ metadata:
   name: hddcheap
 spec:
   ports:
-  - name: tcp
-    port: 8080
+    - name: tcp
+      port: 3000
   selector:
     app: hddcheap
 
@@ -44,13 +46,13 @@ spec:
   entryPoints:
     - https
   routes:
-  - match: Host(`hdd.cheap`)
-    kind: Rule
-    services:
-    - name: hddcheap
-      port: 80
+    - match: Host(`hdd.cheap`)
+      kind: Rule
+      services:
+        - name: hddcheap
+          port: 3000
   tls:
     certResolver: default
     domains:
-    - main: "hdd.cheap"
+      - main: "hdd.cheap"
 
