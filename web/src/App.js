@@ -13,7 +13,6 @@ import Box from "@material-ui/core/Box";
 
 let ws = new WebSocket(window.location.origin.replace(/^http/, 'ws') + "/ws");
 
-
 class App extends Component {
     constructor(props) {
         super(props);
@@ -44,12 +43,14 @@ class App extends Component {
         let columns = Object.keys(this.state.items[0]).filter(k => (k !== 'tableData')).map(k => {
                 switch (k) {
                     case 'url':
+                        // Make item URL clickable
                         return {title: k, field: k, render: rowData => <a href={rowData.url}>{rowData.url}</a>};
                     default:
                         return {title: k, field: k};
                 }
             }
         );
+        // Add camelcamelcamel price histories
         columns.push({
             'title': 'history',
             'field': 'history',
@@ -77,7 +78,6 @@ class App extends Component {
 
 
     render() {
-
         return (
             <ThemeProvider theme={createMuiTheme()}>
                 <AppBar position="static">
@@ -87,7 +87,9 @@ class App extends Component {
                         </Typography>
                     </Toolbar>
                 </AppBar>
-                <div>{this.state.items === null ? this.renderLoading() : this.renderLoaded()}</div>
+                <div>
+                    {this.state.items === null ? this.renderLoading() : this.renderLoaded()}
+                </div>
             </ThemeProvider>
         )
     }
