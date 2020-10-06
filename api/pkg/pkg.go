@@ -259,6 +259,7 @@ func (i *ItemFetcher) FetchItems(page int) ([]Item, error) {
 	return items, nil
 }
 
+// Handles incoming websocket connections
 func handleWebsocket(w http.ResponseWriter, r *http.Request) {
 	upgrader := &websocket.Upgrader{CheckOrigin: func(r *http.Request) bool {
 		return true
@@ -290,7 +291,7 @@ func handleWebsocket(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Start and
+// Start and serve the hddcheap API
 func Serve(refreshPeriod, numPages int, listenAddr string) {
 	log.Infof("starting hddcheap api")
 	err := itemStore.Start(refreshPeriod, numPages)

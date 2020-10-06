@@ -36,6 +36,8 @@ var (
 	}
 )
 
-func Execute() error {
-	return rootCmd.Execute()
+func Execute() {
+	if err := rootCmd.Execute(); err != nil {
+		log.Fatalf(err.Error())
+	}
 }
