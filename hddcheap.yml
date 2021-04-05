@@ -16,10 +16,10 @@ spec:
       containers:
         - name: hddcheap-api
           imagePullPolicy: Always
-          image: registry.int.vesey.tech/will/hddcheap/api
+          image: registry.svc.vesey.tech/will/hddcheap/api
         - name: hddcheap-web
           imagePullPolicy: Always
-          image: registry.int.vesey.tech/will/hddcheap/web
+          image: registry.svc.vesey.tech/will/hddcheap/web
           ports:
             - containerPort: 3000
       imagePullSecrets:
@@ -46,7 +46,7 @@ spec:
   entryPoints:
     - https
   routes:
-    - match: Host(`hdd.cheap`)
+    - match: Host(`hddcheap.svc.vesey.tech`)
       kind: Rule
       services:
         - name: hddcheap
