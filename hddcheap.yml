@@ -46,7 +46,7 @@ spec:
   entryPoints:
     - https
   routes:
-    - match: Host(`hddcheap.svc.vesey.tech`)
+    - match: Host(`hddcheap.vesey.tech`)
       kind: Rule
       services:
         - name: hddcheap
