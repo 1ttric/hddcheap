@@ -54,5 +54,5 @@ spec:
   tls:
     certResolver: default
     domains:
-      - main: "hdd.cheap"
+      - main: "hddcheap.vesey.tech"
 
