@@ -2,10 +2,9 @@ import React, {Component} from 'react';
 import './App.css';
 import LinearProgress from "@material-ui/core/LinearProgress";
 import MaterialTable from "material-table";
-import {Snackbar} from "@material-ui/core";
+import {createTheme, Snackbar} from "@material-ui/core";
 import MuiAlert from '@material-ui/lab/Alert';
 import {ThemeProvider} from "@material-ui/styles";
-import createMuiTheme from "@material-ui/core/styles/createMuiTheme";
 import AppBar from "@material-ui/core/AppBar";
 import Typography from "@material-ui/core/Typography";
 import Toolbar from "@material-ui/core/Toolbar";
@@ -79,7 +78,7 @@ class App extends Component {
 
     render() {
         return (
-            <ThemeProvider theme={createMuiTheme()}>
+            <ThemeProvider theme={createTheme()}>
                 <AppBar position="static">
                     <Toolbar>
                         <Typography variant="h6">
