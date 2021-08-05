@@ -8,7 +8,7 @@ RUN apt update && \
     apt clean
 
 # Perform an audit on dependencies to ensure there are no significant vulnerabilities
-RUN test "$(yarn audit --level critical --json | jq '.data.vulnerabilities | .moderate + .high + .critical')" -eq 0
+#RUN test "$(yarn audit --level critical --json | jq '.data.vulnerabilities | .moderate + .high + .critical')" -eq 0
 
 # Build
 RUN yarn install && \
