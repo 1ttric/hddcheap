@@ -18,7 +18,7 @@ const App: FC = () => {
     const [updateSnackVisible, setUpdateSnackVisible] = useState(false);
 
     useEffect(() => {
-        let ws = new ReconnectingWebSocket("ws://localhost:3001/ws");
+        let ws = new ReconnectingWebSocket(window.location.origin.replace(/^http/, "ws") + "/ws");
         ws.onopen = () => console.log("Websocket connected");
         ws.onmessage = (msg) => {
             let items = JSON.parse(msg.data);
