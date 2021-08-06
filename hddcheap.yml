@@ -14,16 +14,12 @@ spec:
         app: hddcheap
     spec:
       containers:
-        - name: hddcheap-api
+        - name: api
           imagePullPolicy: Always
           image: registry.svc.vesey.tech/will/hddcheap/api
-        - name: hddcheap-web
+        - name: web
           imagePullPolicy: Always
           image: registry.svc.vesey.tech/will/hddcheap/web
-          ports:
-            - containerPort: 3000
-      imagePullSecrets:
-        - name: gitlab-registry
 
 ---
 apiVersion: v1
