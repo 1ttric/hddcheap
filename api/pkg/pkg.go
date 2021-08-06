@@ -1,14 +1,13 @@
 package pkg
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
+	"github.com/chromedp/chromedp"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
-	"github.com/tebeka/selenium"
-	"github.com/tebeka/selenium/chrome"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -128,39 +127,24 @@ func (s *ItemStore) Stop() {
 	<-s.stopped
 }
 
-// Encapsulates a Selenium service to fetch items while reusing the same webdriver
+// Encapsulates a remote browser service to fetch items
 type ItemFetcher struct {
-	seleniumSvc *selenium.Service
-	driver      selenium.WebDriver
+	ctx    context.Context
+	cancel context.CancelFunc
 }
 
 func (i *ItemFetcher) Start() error {
-	var err error
-	i.seleniumSvc, err = selenium.NewChromeDriverService("chromedriver", 4444)
-	if err != nil {
-		log.Errorf("could not find selenium binary")
-		return fmt.Errorf("could not find selenium binary")
-	}
-	capabilities := selenium.Capabilities{"browser": "chrome"}
-	capabilities.AddChrome(chrome.Capabilities{Args: []string{"--headless"}})
-	i.driver, err = selenium.NewRemote(capabilities, "http://127.0.0.1:4444/wd/hub")
-	if err != nil {
-		log.Errorf("could not connect to selenium remote")
-		return fmt.Errorf("could not connect to selenium remote")
-	}
-
+	i.ctx, i.cancel = chromedp.NewContext(context.Background())
 	return nil
 }
 
 func (i *ItemFetcher) Stop() {
-	_ = i.seleniumSvc.Stop()
-	_ = i.driver.Quit()
+	i.cancel()
 }
 
-// Fetches Amazon items from a search with Chromedriver via Selenium
-// Page begins at 1
+// Fetches Amazon items from a search page via chromedp
+// Page numbers begin at 1
 func (i *ItemFetcher) FetchItems(page int) ([]Item, error) {
-
 	baseURL, err := url.Parse("https://www.amazon.com/s/ref=sr_st_featured-rank")
 	if err != nil {
 		panic(err)
@@ -178,32 +162,10 @@ func (i *ItemFetcher) FetchItems(page int) ([]Item, error) {
 		params.Add(k, v)
 	}
 	baseURL.RawQuery = params.Encode()
-	if err := i.driver.Get(baseURL.String()); err != nil {
+	var html string
+	if err := chromedp.Run(i.ctx, chromedp.Navigate(baseURL.String()), chromedp.OuterHTML("html", &html)); err != nil {
 		return []Item{}, fmt.Errorf("%w: %s", errFetchFailure, err.Error())
 	}
-	err = i.driver.Wait(func(wd selenium.WebDriver) (b bool, err error) {
-		pageSource, err := wd.PageSource()
-		if err != nil {
-			return true, err
-		}
-		doc, err := goquery.NewDocumentFromReader(strings.NewReader(pageSource))
-		if err != nil {
-			return true, err
-		}
-		return doc.Find("li.a-last").Length() > 0, nil
-	})
-	if err != nil {
-		return []Item{}, fmt.Errorf("%w: %s", errFetchFailure, err.Error())
-	}
-	html, err := i.driver.PageSource()
-	if err != nil {
-		return []Item{}, fmt.Errorf("%w: %s", errFetchFailure, err.Error())
-	}
-	err = ioutil.WriteFile("/tmp/random", []byte(html), 0o644)
-	if err != nil {
-		return []Item{}, fmt.Errorf("%w: %s", errFetchFailure, err.Error())
-	}
-
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(html))
 	if err != nil {
 		return []Item{}, fmt.Errorf("%w: %s", errFetchFailure, err.Error())
