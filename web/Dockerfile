@@ -1,11 +1,9 @@
-FROM node:lts-slim AS build
+FROM node:alpine3.14 AS build
 WORKDIR /app/src
 COPY . .
 
 # Fetch dependencies
-RUN apt update && \
-    apt install -y jq && \
-    apt clean
+RUN apk add --no-cache jq
 
 # Perform an audit on dependencies to ensure there are no significant vulnerabilities
 #RUN test "$(yarn audit --level critical --json | jq '.data.vulnerabilities | .moderate + .high + .critical')" -eq 0
