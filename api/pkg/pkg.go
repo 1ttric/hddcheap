@@ -28,12 +28,12 @@ var (
 
 // Represents a scraped Amazon storage item
 type Item struct {
-	ASIN       string  `json:"asin"`
-	URL        string  `json:"url"`
-	Name       string  `json:"name"`
-	Price      float32 `json:"price"`
-	Capacity   float32 `json:"capacity"`
-	Efficiency float32 `json:"efficiency"`
+	ASIN             string  `json:"asin"`
+	URL              string  `json:"url"`
+	Name             string  `json:"name"`
+	Price            float32 `json:"price"`
+	Capacity         float32 `json:"capacity"`
+	PricePerTerabyte float32 `json:"price-per-terabyte"`
 }
 
 type ItemStore struct {
@@ -45,7 +45,7 @@ type ItemStore struct {
 	stopped chan struct{}
 }
 
-// Refreshes the items in the store, returning a list sorted by efficiency
+// Refreshes the items in the store, returning a list sorted by cost efficiency
 func (s *ItemStore) refresh(numPages int) error {
 	var sortedItems []Item
 	for page := 0; page < numPages; page++ {
@@ -56,7 +56,7 @@ func (s *ItemStore) refresh(numPages int) error {
 		sortedItems = append(sortedItems, itemPage...)
 	}
 	sort.Slice(sortedItems, func(i, j int) bool {
-		return sortedItems[i].Efficiency < sortedItems[j].Efficiency
+		return sortedItems[i].PricePerTerabyte < sortedItems[j].PricePerTerabyte
 	})
 	s.items = sortedItems
 
@@ -208,12 +208,12 @@ func (i *ItemFetcher) FetchItems(page int) ([]Item, error) {
 		}
 		capacity := float32(capacityFloat)
 		item := Item{
-			ASIN:       asin,
-			URL:        itemUrl,
-			Name:       name,
-			Price:      price,
-			Capacity:   capacity,
-			Efficiency: price / capacity,
+			ASIN:             asin,
+			URL:              itemUrl,
+			Name:             name,
+			Price:            price,
+			Capacity:         capacity,
+			PricePerTerabyte: price / capacity,
 		}
 		items = append(items, item)
 	})
