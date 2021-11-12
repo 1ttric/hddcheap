@@ -10,6 +10,9 @@ import Typography from "@material-ui/core/Typography";
 import Toolbar from "@material-ui/core/Toolbar";
 import Box from "@material-ui/core/Box";
 import ReconnectingWebSocket from "reconnecting-websocket";
+import {DateTime} from "luxon";
+
+const API_URL = process.env.REACT_APP_API_URL ?? window.location.origin
 
 const App: FC = () => {
     const [loading, setLoading] = useState(true);
@@ -18,20 +21,20 @@ const App: FC = () => {
     const [updateSnackVisible, setUpdateSnackVisible] = useState(false);
 
     useEffect(() => {
-        let ws = new ReconnectingWebSocket(window.location.origin.replace(/^http/, "ws") + "/ws");
+        let ws = new ReconnectingWebSocket(API_URL.replace(/^http/, "ws") + "/ws");
         ws.onopen = () => console.log("Websocket connected");
         ws.onmessage = (msg) => {
             let items = JSON.parse(msg.data);
             setLoading(false);
             setItems(items);
-            setLastUpdate(Date.now().toLocaleString())
+            setLastUpdate(DateTime.now().toISOTime({includeOffset: false}))
             setUpdateSnackVisible(true)
         }
     }, [])
 
     const columns: Column<Object>[] = useMemo(() => {
         if (!items.length) return [];
-        let columns: Column<Object>[] = [...new Set(items.flatMap(o=>Object.keys(o)))].map(k => {
+        let columns: Column<Object>[] = [...new Set(items.flatMap(o => Object.keys(o)))].map(k => {
                 switch (k) {
                     case "url":
                         // Make item URL clickable
