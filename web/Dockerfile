@@ -1,4 +1,4 @@
-FROM node:alpine3.14 AS build
+FROM node:lts-alpine3.14 AS build
 WORKDIR /app/src
 COPY . .
 
