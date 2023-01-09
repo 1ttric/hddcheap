@@ -15,7 +15,7 @@
     "@types/react": "^17.0.34",
     "@types/react-dom": "^17.0.11",
     "http-proxy-middleware": "^2.0.1",
-    "luxon": "^2.1.1",
+    "luxon": "^2.5.2",
     "material-table": "^1.69.3",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
